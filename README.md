@@ -9,6 +9,7 @@ Upload the BIN files to your esp8266 at the adress in the file name...
 Some more info from cnLohr:>>
 
 Background and RF
+
   You may say "But nyquist says you can't transmit or receive frequencies at more than 1/2 the sample rate (40 MHz in this case). To a degree that is true. Some people thought it may be overtones, but what happens in reality something stranger happens. Everything you transmit is actually mirrored around 1/2 the sample rate (40 MHz). So, transmitting 60 MHz on an 80 MHz bitclock creates a waveform both at 60 as well as 20. This isn't perfect. Some frequencies line up to the 80 MHz well, others do not.
 
 We store a bit pattern in the "premodulated_table" array. This contains bitstreams for various signals, such as the "sync" level or "colorbust" level, or any of the visual colors. This table's length of 1408 bits per color was chosen so that when sent out one bit at a time at 80 MHz, it works out to an even multiplier of the NTCS chroma frequency of 315.0/88.0 MHz, or 3.579545455 MHz. You can calculate this by taking 1408/80MHz = 17.6us * 3.579545 MHz = 63 cycles, exactly. Conveniently, it also works out to an even multiplier of 61.25 MHz, Channel 3's luma center. 17.6us * 61.25 MHz = 1078 cycles, exactly! When you modulate arbitrary frequencies, sometimes the cycles come out very uneven.
@@ -20,6 +21,7 @@ In order to generate color, we need to modulate in a chroma signal, 3.579MHz abo
 This is basically a 1-bit dithering DAC, operating at a frequency below the nyquist, trying to encode luma and color at the same time. Don't be surprised that the quality's terrible.
 
 Code Layout
+
 Tables for handling the line-buffer state machine are (generated/stored?) in MayCbTables.h/c, and similar tables for creating the on-wire signal encoding are in synthtables.c.
 
 Functions to set up the DMA transfers, refill the buffers when they become empty, and change what kind of line should be sent based on the framebuffer contents are in ntsc_broadcast.c. These functions handle all of the modulation. This sets up the DMA, and an interrupt that is called when the DMA finishes a block (equal to one line). Upon completion, it uses CbTable to decide what function to call to fill in the line. The interrupt fills out the next line for DMA which keeps going.
@@ -29,9 +31,11 @@ The framebuffer is updated by various demo screens located in user_main.c.
 custom_commands.c contain the custom commands used for the NTSC-specific aspects. Using the common websockets interface there are two added commands. These include "CO" and "CV" which set the operation mode (CO) and allow users to change the modulation table from a web interface (CV).
 
 Demo screens
+
 The following demo screens are available. They normally tick through one after another (except ones after 10), unless the user disables this in the web browser.
 
 Screen Modes
+
 Basic intro screen, shows IP address if available.
 ESP8266 Features
 Intro to and completion of framebuffer copy test. Beware, running this screen too long deliberately will cause a crash.
@@ -41,8 +45,10 @@ Dynamic 3D mesh demo.
 Pitch for this project's github.
 Color screen with 16 color balls.
 4x4 color swatches, useful for when you're messing with colors in the web GUI.
+
 Web interface
-The web interface is borrowing the web interface from esp8266ws2812i2s. Power on the ESP, connect to it, then, point your web browser to http://192.168.4.1. It has a new button "NTSC." This gives you the option to allow demo to continue from screen to screen, or freeze at a specific screen. You can specify the screen. Additionally, for RF testing, you can jam a color. Whenever the color jam is set to something 0 or above, it turns off all line drawing logic, and simply outputs that color continuously. This will prevent TV sets from seeing it, however, you can see it on other RF equipment.
+
+Power on the ESP, connect to it, then, point your web browser to http://192.168.4.1. It has a new button "NTSC." This gives you the option to allow demo to continue from screen to screen, or freeze at a specific screen. You can specify the screen. Additionally, for RF testing, you can jam a color. Whenever the color jam is set to something 0 or above, it turns off all line drawing logic, and simply outputs that color continuously. This will prevent TV sets from seeing it, however, you can see it on other RF equipment.
 
 It also has an interactive Javascript webworker system that lets you write code to make a new color! You can create a new bitstream that will be transmitted when a specific color is hit. You can edit the code and it is effective as you type. It automatically re-starts the webworker every time you change it.
 
